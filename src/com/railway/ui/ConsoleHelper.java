@@ -58,7 +58,20 @@ public class ConsoleHelper {
 
     private final Scanner in = new Scanner(System.in);
 
-    public void enableAlternateBuffer() { System.out.print("\033[?1049h"); System.out.flush(); } public void disableAlternateBuffer() { System.out.print("\033[?1049l"); System.out.flush(); } public void clearScreen() {
+    /** Switches to the alternate screen buffer — terminal history becomes invisible. */
+    public void enableAlternateBuffer() {
+        System.out.print("\033[?1049h");
+        System.out.flush();
+    }
+
+    /** Switches back to the main screen buffer — terminal history is restored. */
+    public void disableAlternateBuffer() {
+        System.out.print("\033[?1049l");
+        System.out.flush();
+    }
+
+    /** Clears the current screen. */
+    public void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }

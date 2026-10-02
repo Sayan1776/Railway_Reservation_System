@@ -30,6 +30,15 @@ public class Main {
 
     public static void main(String[] args) {
         ConsoleHelper console = new ConsoleHelper();
+
+        // Switch to alternate screen buffer — hides all previous terminal content
+        console.enableAlternateBuffer();
+
+        // Ensure we always restore the original terminal, even on Ctrl+C
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            console.disableAlternateBuffer();
+        }));
+
         console.printBanner();
         try {
             start(console);
@@ -42,6 +51,10 @@ public class Main {
             }
             System.out.println(YELLOW + ConsoleHelper.MARGIN + "Check db.properties, your internet connection and that the Supabase project is running." + RESET);
         }
+
+        // Small pause so user can read any final messages before terminal restores
+        try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+        console.disableAlternateBuffer();
     }
 
     private static void start(ConsoleHelper console) {
