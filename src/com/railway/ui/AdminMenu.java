@@ -69,7 +69,7 @@ public class AdminMenu {
             if (t.getRoute() == null) {
                 System.out.println(YELLOW + ConsoleHelper.MARGIN + "  (no route defined)" + RESET);
             } else {
-                console.thinLine(55);
+                console.thinLine();
                 for (RouteStop s : t.getRoute().getStops()) {
                     String arr = DateUtil.format(s.getArrivalTime());
                     String dep = DateUtil.format(s.getDepartureTime());
@@ -78,7 +78,7 @@ public class AdminMenu {
                                     + "  " + DIM + "%4d km" + RESET + "%n",
                             s.getStopOrder(), s.getStation().getCode(), arr, dep, s.getDistanceKm());
                 }
-                console.thinLine(55);
+                console.thinLine();
             }
             StringBuilder classes = new StringBuilder();
             for (TrainClass tc : t.getClasses()) {
@@ -93,7 +93,7 @@ public class AdminMenu {
         console.heading("Stations");
         System.out.println();
         System.out.printf(ConsoleHelper.MARGIN + "  " + BOLD + "%-6s %-30s %s" + RESET + "%n", "CODE", "NAME", "CITY");
-        console.thinLine(55);
+        console.thinLine();
         for (Station s : trainService.getStations()) {
             System.out.printf(ConsoleHelper.MARGIN + "  " + CYAN + "%-6s" + RESET + " %-30s " + DIM + "%s" + RESET + "%n",
                     s.getCode(), s.getName(), s.getCity());
@@ -126,4 +126,5 @@ public class AdminMenu {
         return sb.toString();
     }
 }
+
 

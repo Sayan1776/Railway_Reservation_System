@@ -99,7 +99,7 @@ public class UserMenu {
             System.out.println(BOLD + CYAN + ConsoleHelper.MARGIN + train.getTrainNumber() + RESET + "  "
                     + BOLD + train.getName() + RESET);
             System.out.println(DIM + ConsoleHelper.MARGIN + "  " + timing(train, from, to) + RESET);
-            console.thinLine(55);
+            console.thinLine();
             Map<SeatClass, Integer> free = trainService.getAvailability(train, date);
             System.out.printf(ConsoleHelper.MARGIN + "  " + BOLD + "%-5s %-17s %6s   %s" + RESET + "%n", "CLASS", "TYPE", "AVAIL", "FARE (per person)");
             for (TrainClass tc : train.getClasses()) {
@@ -205,7 +205,7 @@ public class UserMenu {
         System.out.println();
         System.out.printf(ConsoleHelper.MARGIN + BOLD + "%-12s %-7s %-6s %-6s %-12s %-5s %-11s %s" + RESET + "%n",
                 "PNR", "TRAIN", "FROM", "TO", "DATE", "CLASS", "STATUS", "FARE");
-        console.thinLine(72);
+        console.thinLine();
         for (Ticket t : tickets) {
             String statusColor = t.isCancelled() ? RED : GREEN;
             System.out.printf(ConsoleHelper.MARGIN + YELLOW + "%-12s" + RESET + " %-7d %-6s %-6s %-12s " + MAGENTA + "%-5s" + RESET + " "
@@ -239,7 +239,7 @@ public class UserMenu {
     private void showStations() {
         System.out.println();
         System.out.println(BOLD + ConsoleHelper.MARGIN + "Available Stations:" + RESET);
-        console.thinLine(50);
+        console.thinLine();
         for (Station s : trainService.getStations()) {
             System.out.printf(ConsoleHelper.MARGIN + "  " + CYAN + "%-5s" + RESET + " %s, " + DIM + "%s" + RESET + "%n",
                     s.getCode(), s.getName(), s.getCity());
@@ -258,4 +258,5 @@ public class UserMenu {
                 + " | " + train.getRoute().distanceBetween(from, to) + " km";
     }
 }
+
 
