@@ -80,6 +80,7 @@ public class BookingService {
         Ticket ticket = new Ticket(pnr, userId, trainNumber, seatClass, journeyDate, fromCode, toCode,
                 BookingStatus.CONFIRMED, fare, null, null, null);
         for (Passenger p : passengers) {
+            p.setSeatLabel(generateSeatLabel(seatClass, p.getBerthPreference()));
             ticket.addPassenger(p);
         }
 
@@ -98,5 +99,35 @@ public class BookingService {
             }
         }
         throw new IllegalStateException("Could not generate a unique PNR");
+    }
+
+    private String generateSeatLabel(SeatClass seatClass, Passenger.BerthPreference pref) {
+        String prefix = switch (seatClass) {
+            case SL -> "S";
+            case AC3 -> "B";
+            case AC2 -> "A";
+            case AC1 -> "H";
+            default -> "C";
+        };
+        int coach = 1 + (int)(Math.random() * 5); // Random coach 1-5
+        int seatNum;
+
+        if (pref == Passenger.BerthPreference.NONE) {
+            // Any random seat available
+            seatNum = 1 + (int)(Math.random() * 72);
+        } else {
+            // Allocate a seat that matches their exact preference!
+            int block = (int)(Math.random() * 9); // Blocks of 8 seats
+            int base = block * 8;
+            switch (pref) {
+                case LOWER:      seatNum = base + (Math.random() < 0.5 ? 1 : 4); break;
+                case MIDDLE:     seatNum = base + (Math.random() < 0.5 ? 2 : 5); break;
+                case UPPER:      seatNum = base + (Math.random() < 0.5 ? 3 : 6); break;
+                case SIDE_LOWER: seatNum = base + 7; break;
+                case SIDE_UPPER: seatNum = base + 8; break;
+                default:         seatNum = 1 + (int)(Math.random() * 72);
+            }
+        }
+        return prefix + coach + "-" + seatNum;
     }
 }
