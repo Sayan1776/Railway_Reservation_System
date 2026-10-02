@@ -23,28 +23,33 @@ import com.railway.ui.ConsoleHelper;
 import com.railway.ui.UserMenu;
 import com.railway.util.Validator;
 
+import static com.railway.ui.ConsoleHelper.*;
+
 /** Wires everything together and runs the login loop. All logic lives in the services. */
 public class Main {
 
     public static void main(String[] args) {
         ConsoleHelper console = new ConsoleHelper();
+        console.printBanner();
         try {
             start(console);
         } catch (ConsoleHelper.InputClosedException e) {
-            System.out.println("\nInput closed. Goodbye.");
+            System.out.println("\n" + DIM + "Input closed. Goodbye." + RESET);
         } catch (DataAccessException | ExceptionInInitializerError e) {
-            System.out.println("\nCould not reach the database: " + e.getMessage());
+            System.out.println(RED + "\n  " + "✖" + " Could not reach the database: " + e.getMessage() + RESET);
             if (e.getCause() != null) {
-                System.out.println("Reason: " + e.getCause().getMessage());
+                System.out.println(DIM + "  Reason: " + e.getCause().getMessage() + RESET);
             }
-            System.out.println("Check db.properties, your internet connection and that the Supabase project is running.");
+            System.out.println(YELLOW + "  Check db.properties, your internet connection and that the Supabase project is running." + RESET);
         }
     }
 
     private static void start(ConsoleHelper console) {
+        console.showLoading("Connecting to database...");
         TrainRepository trainRepo = new JdbcTrainRepository();
         TicketRepository ticketRepo = new JdbcTicketRepository();
         UserRepository userRepo = new JdbcUserRepository();
+        console.showLoading("Initializing services...");
 
         FareCalculator fareCalculator = new DistanceFareCalculator();
         AuthService auth = new AuthService(userRepo);
@@ -53,20 +58,17 @@ public class Main {
         BookingService booking = new BookingService(trainRepo, ticketRepo, fareCalculator, new PaymentService());
         CancellationService cancellation = new CancellationService(trainRepo, ticketRepo);
 
-        System.out.println("=====================================");
-        System.out.println("   RAILWAY RESERVATION SYSTEM");
-        System.out.println("=====================================");
-
         if (auth.needsAdminSetup()) {
             firstRunSetup(console, auth);
         }
 
         boolean running = true;
         while (running) {
-            System.out.println("\n1. Login");
-            System.out.println("2. Register");
-            System.out.println("0. Exit");
-            int choice = console.readInt("Choose: ", 0, 2);
+            int choice = console.showMenu("MAIN MENU", new String[]{
+                    YELLOW + "1" + RESET + ". Login",
+                    YELLOW + "2" + RESET + ". Register",
+                    YELLOW + "0" + RESET + ". " + DIM + "Exit" + RESET
+            }, 0, 2);
             try {
                 switch (choice) {
                     case 1:
@@ -74,7 +76,6 @@ public class Main {
                         if (person == null) {
                             break;
                         }
-                        // Polymorphism: one Person variable, the role decides which menu opens.
                         if (person.isAdmin()) {
                             new AdminMenu(person, console, trainService, ticketService, cancellation).run();
                         } else {
@@ -93,11 +94,11 @@ public class Main {
                 console.error(e);
             }
         }
-        System.out.println("Goodbye.");
+        console.printGoodbye();
     }
 
     private static void firstRunSetup(ConsoleHelper console, AuthService auth) {
-        console.heading("First run: create the admin account");
+        console.heading("First Run: Create Admin Account");
         while (true) {
             String name = console.read("Admin name: ", Validator::requireName);
             String email = console.read("Admin email: ", Validator::requireEmail);
@@ -105,7 +106,7 @@ public class Main {
             String password = readNewPassword(console);
             try {
                 auth.createFirstAdmin(name, email, phone, password);
-                System.out.println("  Admin created. You can log in now.");
+                console.success("Admin account created. You can log in now.");
                 return;
             } catch (InvalidInputException e) {
                 console.error(e);
@@ -114,21 +115,24 @@ public class Main {
     }
 
     private static void register(ConsoleHelper console, AuthService auth) throws InvalidInputException {
-        console.heading("Register");
+        console.heading("Register New Account");
         String name = console.read("Full name: ", Validator::requireName);
         String email = console.read("Email: ", Validator::requireEmail);
         String phone = console.read("Mobile number: ", Validator::requirePhone);
         String password = readNewPassword(console);
         auth.register(name, email, phone, password);
-        System.out.println("  Account created. You can log in now.");
+        console.success("Account created. You can log in now.");
     }
 
     private static Person login(ConsoleHelper console, AuthService auth) {
         console.heading("Login");
         String email = console.readLine("Email: ");
         String password = console.readSecret("Password: ");
+        console.showLoading("Authenticating...");
         try {
-            return auth.login(email, password);
+            Person person = auth.login(email, password);
+            console.success("Welcome back, " + person.getFullName() + "!");
+            return person;
         } catch (AuthenticationException e) {
             console.error(e);
             return null;
@@ -144,7 +148,7 @@ public class Main {
             if (password.equals(console.readSecret("Confirm password: "))) {
                 return password;
             }
-            System.out.println("  ! Passwords do not match");
+            System.out.println(RED + "  " + "✖" + " Passwords do not match" + RESET);
         }
     }
 }

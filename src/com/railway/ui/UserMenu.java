@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.railway.ui.ConsoleHelper.*;
+
 public class UserMenu {
 
     private final Person user;
@@ -53,13 +55,14 @@ public class UserMenu {
         console.heading("Welcome, " + user.getFullName());
         boolean running = true;
         while (running) {
-            System.out.println("\n1. Search trains");
-            System.out.println("2. Book a ticket");
-            System.out.println("3. My bookings");
-            System.out.println("4. Check a ticket by PNR");
-            System.out.println("5. Cancel a ticket");
-            System.out.println("0. Logout");
-            int choice = console.readInt("Choose: ", 0, 5);
+            int choice = console.showMenu("USER MENU", new String[]{
+                    YELLOW + "1" + RESET + ". Search trains",
+                    YELLOW + "2" + RESET + ". Book a ticket",
+                    YELLOW + "3" + RESET + ". My bookings",
+                    YELLOW + "4" + RESET + ". Check ticket by PNR",
+                    YELLOW + "5" + RESET + ". Cancel a ticket",
+                    YELLOW + "0" + RESET + ". " + DIM + "Logout" + RESET
+            }, 0, 5);
             try {
                 switch (choice) {
                     case 1: search(); break;
@@ -73,28 +76,39 @@ public class UserMenu {
                 console.error(e);
             }
         }
+        console.info("Logged out.");
     }
 
     // ----------------------------------------------------------------- search
 
     private void search() throws InvalidInputException {
+        console.heading("Search Trains");
         showStations();
         String from = console.readLine("From station code: ").toUpperCase();
         String to = console.readLine("To station code: ").toUpperCase();
         LocalDate date = console.readDate("Journey date");
 
+        console.showLoading("Searching trains...");
         List<Train> trains = trainService.search(from, to, date);
         if (trains.isEmpty()) {
-            System.out.println("  No trains run between " + from + " and " + to + " on " + DateUtil.format(date));
+            console.warn("No trains run between " + from + " and " + to + " on " + DateUtil.format(date));
             return;
         }
         for (Train train : trains) {
-            System.out.printf("%n%d  %s%n   %s%n", train.getTrainNumber(), train.getName(), timing(train, from, to));
+            System.out.println();
+            System.out.println(BOLD + CYAN + "  " + train.getTrainNumber() + RESET + "  "
+                    + BOLD + train.getName() + RESET);
+            System.out.println(DIM + "    " + timing(train, from, to) + RESET);
+            console.thinLine(55);
             Map<SeatClass, Integer> free = trainService.getAvailability(train, date);
+            System.out.printf("    " + BOLD + "%-5s %-17s %6s   %s" + RESET + "%n", "CLASS", "TYPE", "AVAIL", "FARE (per person)");
             for (TrainClass tc : train.getClasses()) {
-                System.out.printf("   %-3s %-15s free %3d   Rs. %s%n",
+                int avail = free.get(tc.getSeatClass());
+                String availColor = avail > 10 ? GREEN : (avail > 0 ? YELLOW : RED);
+                System.out.printf("    " + MAGENTA + "%-5s" + RESET + " %-17s " + availColor + "%4d" + RESET
+                                + "   Rs. " + GREEN + "%s" + RESET + "%n",
                         tc.getSeatClass().getCode(), tc.getSeatClass().getDisplayName(),
-                        free.get(tc.getSeatClass()),
+                        avail,
                         fareCalculator.calculate(train, tc.getSeatClass(), from, to, 1));
             }
         }
@@ -103,20 +117,22 @@ public class UserMenu {
     // ------------------------------------------------------------------- book
 
     private void book() throws InvalidInputException, TrainNotFoundException, SeatNotAvailableException {
+        console.heading("Book a Ticket");
         showStations();
         String from = console.readLine("From station code: ").toUpperCase();
         String to = console.readLine("To station code: ").toUpperCase();
         LocalDate date = console.readDate("Journey date");
 
+        console.showLoading("Searching trains...");
         List<Train> trains = trainService.search(from, to, date);
         if (trains.isEmpty()) {
-            System.out.println("  No trains run between " + from + " and " + to + " on " + DateUtil.format(date));
+            console.warn("No trains run between " + from + " and " + to + " on " + DateUtil.format(date));
             return;
         }
 
         List<String> trainOptions = new ArrayList<>();
         for (Train t : trains) {
-            trainOptions.add(t.getTrainNumber() + "  " + t.getName() + "  " + timing(t, from, to));
+            trainOptions.add(CYAN + t.getTrainNumber() + RESET + "  " + t.getName() + "  " + DIM + timing(t, from, to) + RESET);
         }
         int trainIndex = console.choose("Select a train", trainOptions, true);
         if (trainIndex < 0) {
@@ -128,9 +144,11 @@ public class UserMenu {
         List<TrainClass> classes = new ArrayList<>(train.getClasses());
         List<String> classOptions = new ArrayList<>();
         for (TrainClass tc : classes) {
-            classOptions.add(String.format("%-3s %-15s free %3d   Rs. %s per passenger",
+            int avail = free.get(tc.getSeatClass());
+            String availColor = avail > 10 ? GREEN : (avail > 0 ? YELLOW : RED);
+            classOptions.add(String.format(MAGENTA + "%-3s" + RESET + " %-15s free " + availColor + "%3d" + RESET + "   Rs. " + GREEN + "%s" + RESET + " per person",
                     tc.getSeatClass().getCode(), tc.getSeatClass().getDisplayName(),
-                    free.get(tc.getSeatClass()),
+                    avail,
                     fareCalculator.calculate(train, tc.getSeatClass(), from, to, 1)));
         }
         int classIndex = console.choose("Select a class", classOptions, true);
@@ -140,7 +158,7 @@ public class UserMenu {
         SeatClass seatClass = classes.get(classIndex).getSeatClass();
         int available = free.get(seatClass);
         if (available == 0) {
-            System.out.println("  No seats left in " + seatClass.getCode() + " on that date.");
+            console.warn("No seats left in " + seatClass.getCode() + " on that date.");
             return;
         }
 
@@ -148,7 +166,7 @@ public class UserMenu {
         int count = console.readInt("Number of passengers (1-" + max + "): ", 1, max);
         List<Passenger> passengers = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
-            System.out.println("\nPassenger " + i);
+            console.info("Passenger " + i + " of " + count);
             String name = console.read("  Name: ", Validator::requireName);
             int age = console.readInt("  Age (1-120): ", 1, 120);
             Passenger.Gender gender = console.chooseEnum("  Gender", Passenger.Gender.values());
@@ -159,29 +177,39 @@ public class UserMenu {
 
         Payment.Method method = console.chooseEnum("Payment method", Payment.Method.values());
         BigDecimal fare = fareCalculator.calculate(train, seatClass, from, to, count);
-        System.out.println("\nTotal fare for " + count + " passenger(s): Rs. " + fare);
+
+        System.out.println();
+        System.out.println(BOLD + "  Total fare for " + count + " passenger(s): " + GREEN + "Rs. " + fare + RESET);
         if (!console.confirm("Pay and book")) {
-            System.out.println("  Booking cancelled.");
+            console.info("Booking cancelled.");
             return;
         }
 
+        console.showProgress("Processing payment", 800);
+        console.showLoading("Confirming reservation...");
         Ticket ticket = bookingService.book(user.getId(), train.getTrainNumber(), from, to,
                 date, seatClass, passengers, method);
-        console.heading("Booking confirmed");
+        console.heading("Booking Confirmed!");
         console.printTicket(ticket);
     }
 
     // ----------------------------------------------------- bookings, PNR, cancel
 
     private void myBookings() {
+        console.heading("My Bookings");
         List<Ticket> tickets = ticketService.forUser(user);
         if (tickets.isEmpty()) {
-            System.out.println("  You have no bookings yet.");
+            console.info("You have no bookings yet.");
             return;
         }
         System.out.println();
+        System.out.printf("  " + BOLD + "%-12s %-7s %-6s %-6s %-12s %-5s %-11s %s" + RESET + "%n",
+                "PNR", "TRAIN", "FROM", "TO", "DATE", "CLASS", "STATUS", "FARE");
+        console.thinLine(72);
         for (Ticket t : tickets) {
-            System.out.printf("  %s | train %d | %s -> %s | %s | %s | %s | Rs. %s%n",
+            String statusColor = t.isCancelled() ? RED : GREEN;
+            System.out.printf("  " + YELLOW + "%-12s" + RESET + " %-7d %-6s %-6s %-12s " + MAGENTA + "%-5s" + RESET + " "
+                            + statusColor + "%-11s" + RESET + " Rs. " + GREEN + "%s" + RESET + "%n",
                     t.getPnr(), t.getTrainNumber(), t.getFromStation(), t.getToStation(),
                     DateUtil.format(t.getJourneyDate()), t.getSeatClass().getCode(),
                     t.getStatus(), t.getTotalFare());
@@ -195,32 +223,36 @@ public class UserMenu {
     private void cancel() throws InvalidPNRException, InvalidInputException {
         String pnr = console.readLine("PNR to cancel: ");
         console.printTicket(ticketService.find(user, pnr));
-        System.out.println("\n  The refund depends on how much time is left before departure.");
+        console.warn("The refund depends on how much time is left before departure.");
         if (!console.confirm("Cancel this ticket")) {
-            System.out.println("  Nothing was cancelled.");
+            console.info("Nothing was cancelled.");
             return;
         }
+        console.showLoading("Processing cancellation...");
         Ticket cancelled = cancellationService.cancel(user, pnr);
-        console.heading("Ticket cancelled");
-        System.out.println("  Refund: Rs. " + cancelled.getRefundAmount());
+        console.heading("Ticket Cancelled");
+        console.success("Refund: Rs. " + cancelled.getRefundAmount());
     }
 
     // ---------------------------------------------------------------- helpers
 
     private void showStations() {
-        System.out.println("\nStations:");
+        System.out.println();
+        System.out.println(BOLD + "  Available Stations:" + RESET);
+        console.thinLine(50);
         for (Station s : trainService.getStations()) {
-            System.out.printf("  %-5s %s, %s%n", s.getCode(), s.getName(), s.getCity());
+            System.out.printf("    " + CYAN + "%-5s" + RESET + " %s, " + DIM + "%s" + RESET + "%n",
+                    s.getCode(), s.getName(), s.getCity());
         }
         System.out.println();
     }
 
-    /** "HWH 16:50 -> GAYA 23:10 | 458 km" with a (+1) marker when it arrives on a later day. */
+    /** "HWH 16:50 → GAYA 23:10 (+1) | 458 km" */
     private String timing(Train train, String from, String to) {
         RouteStop a = train.getRoute().findStop(from).get();
         RouteStop b = train.getRoute().findStop(to).get();
         int daysLater = b.getDayOffset() - a.getDayOffset();
-        return from + " " + DateUtil.format(a.getDepartureTime()) + " -> "
+        return from + " " + DateUtil.format(a.getDepartureTime()) + " → "
                 + to + " " + DateUtil.format(b.getArrivalTime())
                 + (daysLater > 0 ? " (+" + daysLater + ")" : "")
                 + " | " + train.getRoute().distanceBetween(from, to) + " km";

@@ -13,6 +13,8 @@ import com.railway.service.TicketService;
 import com.railway.service.TrainService;
 import com.railway.util.DateUtil;
 
+import static com.railway.ui.ConsoleHelper.*;
+
 public class AdminMenu {
 
     private static final String[] DAYS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
@@ -33,15 +35,16 @@ public class AdminMenu {
     }
 
     public void run() {
-        console.heading("Admin: " + admin.getFullName());
+        console.heading("Admin Panel: " + admin.getFullName());
         boolean running = true;
         while (running) {
-            System.out.println("\n1. List all trains");
-            System.out.println("2. List stations");
-            System.out.println("3. Look up a ticket by PNR");
-            System.out.println("4. Cancel any ticket");
-            System.out.println("0. Logout");
-            int choice = console.readInt("Choose: ", 0, 4);
+            int choice = console.showMenu("ADMIN MENU", new String[]{
+                    YELLOW + "1" + RESET + ". List all trains",
+                    YELLOW + "2" + RESET + ". List stations",
+                    YELLOW + "3" + RESET + ". Look up ticket by PNR",
+                    YELLOW + "4" + RESET + ". Cancel any ticket",
+                    YELLOW + "0" + RESET + ". " + DIM + "Logout" + RESET
+            }, 0, 4);
             try {
                 switch (choice) {
                     case 1: listTrains(); break;
@@ -54,32 +57,46 @@ public class AdminMenu {
                 console.error(e);
             }
         }
+        console.info("Logged out.");
     }
 
     private void listTrains() {
+        console.heading("All Trains");
         for (Train t : trainService.getAllTrains()) {
-            System.out.printf("%n%d  %s  runs: %s%n", t.getTrainNumber(), t.getName(), days(t.getRunsOn()));
+            System.out.println();
+            System.out.println(BOLD + CYAN + "  " + t.getTrainNumber() + RESET + "  "
+                    + BOLD + t.getName() + RESET + "  " + DIM + "runs: " + days(t.getRunsOn()) + RESET);
             if (t.getRoute() == null) {
-                System.out.println("   (no route defined)");
+                System.out.println(YELLOW + "    (no route defined)" + RESET);
             } else {
+                console.thinLine(55);
                 for (RouteStop s : t.getRoute().getStops()) {
-                    System.out.printf("   %2d. %-5s arr %s  dep %s  %4d km%n", s.getStopOrder(),
-                            s.getStation().getCode(), DateUtil.format(s.getArrivalTime()),
-                            DateUtil.format(s.getDepartureTime()), s.getDistanceKm());
+                    String arr = DateUtil.format(s.getArrivalTime());
+                    String dep = DateUtil.format(s.getDepartureTime());
+                    System.out.printf("    " + DIM + "%2d." + RESET + " " + BOLD + "%-5s" + RESET
+                                    + " arr " + GREEN + "%s" + RESET + "  dep " + GREEN + "%s" + RESET
+                                    + "  " + DIM + "%4d km" + RESET + "%n",
+                            s.getStopOrder(), s.getStation().getCode(), arr, dep, s.getDistanceKm());
                 }
+                console.thinLine(55);
             }
             StringBuilder classes = new StringBuilder();
             for (TrainClass tc : t.getClasses()) {
-                classes.append(tc).append("   ");
+                classes.append(MAGENTA + tc.getSeatClass().getCode() + RESET + " x" + tc.getTotalSeats()
+                        + " @" + tc.getFarePerKm() + "/km   ");
             }
-            System.out.println("   classes: " + classes.toString().trim());
+            System.out.println("    Classes: " + classes.toString().trim());
         }
     }
 
     private void listStations() {
+        console.heading("Stations");
         System.out.println();
+        System.out.printf("    " + BOLD + "%-6s %-30s %s" + RESET + "%n", "CODE", "NAME", "CITY");
+        console.thinLine(55);
         for (Station s : trainService.getStations()) {
-            System.out.printf("  %-5s %s, %s%n", s.getCode(), s.getName(), s.getCity());
+            System.out.printf("    " + CYAN + "%-6s" + RESET + " %-30s " + DIM + "%s" + RESET + "%n",
+                    s.getCode(), s.getName(), s.getCity());
         }
     }
 
@@ -91,11 +108,12 @@ public class AdminMenu {
         String pnr = console.readLine("PNR to cancel: ");
         console.printTicket(ticketService.find(admin, pnr));
         if (!console.confirm("Cancel this ticket")) {
-            System.out.println("  Nothing was cancelled.");
+            console.info("Nothing was cancelled.");
             return;
         }
+        console.showLoading("Processing cancellation...");
         Ticket cancelled = cancellationService.cancel(admin, pnr);
-        System.out.println("  Cancelled. Refund: Rs. " + cancelled.getRefundAmount());
+        console.success("Cancelled. Refund: Rs. " + cancelled.getRefundAmount());
     }
 
     private static String days(String runsOn) {
