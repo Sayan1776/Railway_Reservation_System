@@ -96,16 +96,16 @@ public class UserMenu {
         }
         for (Train train : trains) {
             System.out.println();
-            System.out.println(BOLD + CYAN + "  " + train.getTrainNumber() + RESET + "  "
+            System.out.println(BOLD + CYAN + ConsoleHelper.MARGIN + train.getTrainNumber() + RESET + "  "
                     + BOLD + train.getName() + RESET);
-            System.out.println(DIM + "    " + timing(train, from, to) + RESET);
+            System.out.println(DIM + ConsoleHelper.MARGIN + "  " + timing(train, from, to) + RESET);
             console.thinLine(55);
             Map<SeatClass, Integer> free = trainService.getAvailability(train, date);
-            System.out.printf("    " + BOLD + "%-5s %-17s %6s   %s" + RESET + "%n", "CLASS", "TYPE", "AVAIL", "FARE (per person)");
+            System.out.printf(ConsoleHelper.MARGIN + "  " + BOLD + "%-5s %-17s %6s   %s" + RESET + "%n", "CLASS", "TYPE", "AVAIL", "FARE (per person)");
             for (TrainClass tc : train.getClasses()) {
                 int avail = free.get(tc.getSeatClass());
                 String availColor = avail > 10 ? GREEN : (avail > 0 ? YELLOW : RED);
-                System.out.printf("    " + MAGENTA + "%-5s" + RESET + " %-17s " + availColor + "%4d" + RESET
+                System.out.printf(ConsoleHelper.MARGIN + "  " + MAGENTA + "%-5s" + RESET + " %-17s " + availColor + "%4d" + RESET
                                 + "   Rs. " + GREEN + "%s" + RESET + "%n",
                         tc.getSeatClass().getCode(), tc.getSeatClass().getDisplayName(),
                         avail,
@@ -179,7 +179,7 @@ public class UserMenu {
         BigDecimal fare = fareCalculator.calculate(train, seatClass, from, to, count);
 
         System.out.println();
-        System.out.println(BOLD + "  Total fare for " + count + " passenger(s): " + GREEN + "Rs. " + fare + RESET);
+        System.out.println(BOLD + ConsoleHelper.MARGIN + "Total fare for " + count + " passenger(s): " + GREEN + "Rs. " + fare + RESET);
         if (!console.confirm("Pay and book")) {
             console.info("Booking cancelled.");
             return;
@@ -203,12 +203,12 @@ public class UserMenu {
             return;
         }
         System.out.println();
-        System.out.printf("  " + BOLD + "%-12s %-7s %-6s %-6s %-12s %-5s %-11s %s" + RESET + "%n",
+        System.out.printf(ConsoleHelper.MARGIN + BOLD + "%-12s %-7s %-6s %-6s %-12s %-5s %-11s %s" + RESET + "%n",
                 "PNR", "TRAIN", "FROM", "TO", "DATE", "CLASS", "STATUS", "FARE");
         console.thinLine(72);
         for (Ticket t : tickets) {
             String statusColor = t.isCancelled() ? RED : GREEN;
-            System.out.printf("  " + YELLOW + "%-12s" + RESET + " %-7d %-6s %-6s %-12s " + MAGENTA + "%-5s" + RESET + " "
+            System.out.printf(ConsoleHelper.MARGIN + YELLOW + "%-12s" + RESET + " %-7d %-6s %-6s %-12s " + MAGENTA + "%-5s" + RESET + " "
                             + statusColor + "%-11s" + RESET + " Rs. " + GREEN + "%s" + RESET + "%n",
                     t.getPnr(), t.getTrainNumber(), t.getFromStation(), t.getToStation(),
                     DateUtil.format(t.getJourneyDate()), t.getSeatClass().getCode(),
@@ -238,10 +238,10 @@ public class UserMenu {
 
     private void showStations() {
         System.out.println();
-        System.out.println(BOLD + "  Available Stations:" + RESET);
+        System.out.println(BOLD + ConsoleHelper.MARGIN + "Available Stations:" + RESET);
         console.thinLine(50);
         for (Station s : trainService.getStations()) {
-            System.out.printf("    " + CYAN + "%-5s" + RESET + " %s, " + DIM + "%s" + RESET + "%n",
+            System.out.printf(ConsoleHelper.MARGIN + "  " + CYAN + "%-5s" + RESET + " %s, " + DIM + "%s" + RESET + "%n",
                     s.getCode(), s.getName(), s.getCity());
         }
         System.out.println();
@@ -258,3 +258,4 @@ public class UserMenu {
                 + " | " + train.getRoute().distanceBetween(from, to) + " km";
     }
 }
+

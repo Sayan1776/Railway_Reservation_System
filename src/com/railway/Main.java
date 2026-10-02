@@ -34,13 +34,13 @@ public class Main {
         try {
             start(console);
         } catch (ConsoleHelper.InputClosedException e) {
-            System.out.println("\n" + DIM + "Input closed. Goodbye." + RESET);
+            System.out.println("\n" + ConsoleHelper.MARGIN + DIM + "Input closed. Goodbye." + RESET);
         } catch (DataAccessException | ExceptionInInitializerError e) {
-            System.out.println(RED + "\n  " + "✖" + " Could not reach the database: " + e.getMessage() + RESET);
+            System.out.println(RED + "\n" + ConsoleHelper.MARGIN +  "✖" + " Could not reach the database: " + e.getMessage() + RESET);
             if (e.getCause() != null) {
-                System.out.println(DIM + "  Reason: " + e.getCause().getMessage() + RESET);
+                System.out.println(DIM + ConsoleHelper.MARGIN + "Reason: " + e.getCause().getMessage() + RESET);
             }
-            System.out.println(YELLOW + "  Check db.properties, your internet connection and that the Supabase project is running." + RESET);
+            System.out.println(YELLOW + ConsoleHelper.MARGIN + "Check db.properties, your internet connection and that the Supabase project is running." + RESET);
         }
     }
 
@@ -148,7 +148,7 @@ public class Main {
             if (password.equals(console.readSecret("Confirm password: "))) {
                 return password;
             }
-            System.out.println(RED + "  " + "✖" + " Passwords do not match" + RESET);
+            System.out.println(RED + ConsoleHelper.MARGIN + "✖" + " Passwords do not match" + RESET);
         }
     }
 }

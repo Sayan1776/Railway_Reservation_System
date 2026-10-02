@@ -64,16 +64,16 @@ public class AdminMenu {
         console.heading("All Trains");
         for (Train t : trainService.getAllTrains()) {
             System.out.println();
-            System.out.println(BOLD + CYAN + "  " + t.getTrainNumber() + RESET + "  "
+            System.out.println(BOLD + CYAN + ConsoleHelper.MARGIN + t.getTrainNumber() + RESET + "  "
                     + BOLD + t.getName() + RESET + "  " + DIM + "runs: " + days(t.getRunsOn()) + RESET);
             if (t.getRoute() == null) {
-                System.out.println(YELLOW + "    (no route defined)" + RESET);
+                System.out.println(YELLOW + ConsoleHelper.MARGIN + "  (no route defined)" + RESET);
             } else {
                 console.thinLine(55);
                 for (RouteStop s : t.getRoute().getStops()) {
                     String arr = DateUtil.format(s.getArrivalTime());
                     String dep = DateUtil.format(s.getDepartureTime());
-                    System.out.printf("    " + DIM + "%2d." + RESET + " " + BOLD + "%-5s" + RESET
+                    System.out.printf(ConsoleHelper.MARGIN + "  " + DIM + "%2d." + RESET + " " + BOLD + "%-5s" + RESET
                                     + " arr " + GREEN + "%s" + RESET + "  dep " + GREEN + "%s" + RESET
                                     + "  " + DIM + "%4d km" + RESET + "%n",
                             s.getStopOrder(), s.getStation().getCode(), arr, dep, s.getDistanceKm());
@@ -85,17 +85,17 @@ public class AdminMenu {
                 classes.append(MAGENTA + tc.getSeatClass().getCode() + RESET + " x" + tc.getTotalSeats()
                         + " @" + tc.getFarePerKm() + "/km   ");
             }
-            System.out.println("    Classes: " + classes.toString().trim());
+            System.out.println(ConsoleHelper.MARGIN + "  Classes: " + classes.toString().trim());
         }
     }
 
     private void listStations() {
         console.heading("Stations");
         System.out.println();
-        System.out.printf("    " + BOLD + "%-6s %-30s %s" + RESET + "%n", "CODE", "NAME", "CITY");
+        System.out.printf(ConsoleHelper.MARGIN + "  " + BOLD + "%-6s %-30s %s" + RESET + "%n", "CODE", "NAME", "CITY");
         console.thinLine(55);
         for (Station s : trainService.getStations()) {
-            System.out.printf("    " + CYAN + "%-6s" + RESET + " %-30s " + DIM + "%s" + RESET + "%n",
+            System.out.printf(ConsoleHelper.MARGIN + "  " + CYAN + "%-6s" + RESET + " %-30s " + DIM + "%s" + RESET + "%n",
                     s.getCode(), s.getName(), s.getCity());
         }
     }
@@ -126,3 +126,4 @@ public class AdminMenu {
         return sb.toString();
     }
 }
+

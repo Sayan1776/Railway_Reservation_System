@@ -31,6 +31,9 @@ public class ConsoleHelper {
     public static final String WHITE   = "\033[37m";
     public static final String BG_BLUE = "\033[44m";
 
+    // ─── Alignment Margin ───────────────────────────────────────────────
+    public static final String MARGIN  = "                        "; // 24 spaces for centering
+
     // ─── Box-drawing characters ─────────────────────────────────────────
     private static final String H_LINE  = "─";
     private static final String V_LINE  = "│";
@@ -68,10 +71,10 @@ public class ConsoleHelper {
         String[] frames = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
         try {
             for (int i = 0; i < 10; i++) {
-                System.out.print("\r  " + CYAN + frames[i % frames.length] + RESET + " " + message);
+                System.out.print("\r" + MARGIN + CYAN + frames[i % frames.length] + RESET + " " + message);
                 Thread.sleep(80);
             }
-            System.out.print("\r  " + GREEN + CHECK + RESET + " " + message + "                \n");
+            System.out.print("\r" + MARGIN + GREEN + CHECK + RESET + " " + message + "                \n");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -119,7 +122,7 @@ public class ConsoleHelper {
     // ─────────────────────────────────────── Input methods ───────────────
 
     public String readLine(String prompt) {
-        System.out.print(CYAN + "  " + ARROW + " " + RESET + prompt);
+        System.out.print(CYAN + MARGIN + ARROW + " " + RESET + prompt);
         if (!in.hasNextLine()) {
             throw new InputClosedException();
         }
@@ -132,7 +135,7 @@ public class ConsoleHelper {
             try {
                 return parser.parse(readLine(prompt));
             } catch (InvalidInputException e) {
-                System.out.println(RED + "  " + CROSS + " " + e.getMessage() + RESET);
+                System.out.println(RED + MARGIN + CROSS + " " + e.getMessage() + RESET);
             }
         }
     }
@@ -159,20 +162,20 @@ public class ConsoleHelper {
             if (answer.equals("n") || answer.equals("no")) {
                 return false;
             }
-            System.out.println(RED + "  " + CROSS + " Please answer y or n" + RESET);
+            System.out.println(RED + MARGIN + CROSS + " Please answer y or n" + RESET);
         }
     }
 
     /** Shows a numbered list. Returns the 0-based index, or -1 if "Back" was chosen. */
     public int choose(String title, List<String> options, boolean allowBack) {
         System.out.println();
-        System.out.println(BOLD + CYAN + "  " + title + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + title + RESET);
         thinLine(50);
         for (int i = 0; i < options.size(); i++) {
-            System.out.printf("  " + YELLOW + "%d" + RESET + ". %s%n", i + 1, options.get(i));
+            System.out.printf(MARGIN + YELLOW + "%d" + RESET + ". %s%n", i + 1, options.get(i));
         }
         if (allowBack) {
-            System.out.println("  " + DIM + "0. Back" + RESET);
+            System.out.println(MARGIN + DIM + "0. Back" + RESET);
         }
         thinLine(50);
         return readInt("Choose: ", allowBack ? 0 : 1, options.size()) - 1;
@@ -193,30 +196,30 @@ public class ConsoleHelper {
         int width = Math.max(text.length() + 4, 40);
         String pad = repeat(H_DOUBLE, width);
         System.out.println();
-        System.out.println(BOLD + CYAN + "  " + TL + pad + TR + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + TL + pad + TR + RESET);
         String inner = centerText(text, width);
-        System.out.println(BOLD + CYAN + "  " + V_LINE + RESET + BOLD + inner + BOLD + CYAN + V_LINE + RESET);
-        System.out.println(BOLD + CYAN + "  " + BL + pad + BR + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + V_LINE + RESET + BOLD + inner + BOLD + CYAN + V_LINE + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + BL + pad + BR + RESET);
     }
 
     /** Draws a thin separator line. */
     public void thinLine(int width) {
-        System.out.println(DIM + "  " + repeat(H_LINE, width) + RESET);
+        System.out.println(DIM + MARGIN + repeat(H_LINE, width) + RESET);
     }
 
     /** Prints a success message. */
     public void success(String message) {
-        System.out.println(GREEN + "  " + CHECK + " " + message + RESET);
+        System.out.println(GREEN + MARGIN + CHECK + " " + message + RESET);
     }
 
     /** Prints an info message. */
     public void info(String message) {
-        System.out.println(CYAN + "  " + DOT + " " + message + RESET);
+        System.out.println(CYAN + MARGIN + DOT + " " + message + RESET);
     }
 
     /** Prints a warning message. */
     public void warn(String message) {
-        System.out.println(YELLOW + "  ⚠ " + message + RESET);
+        System.out.println(YELLOW + MARGIN + "⚠ " + message + RESET);
     }
 
     /** Prints a friendly error message. Input-closed is rethrown so the program can stop. */
@@ -226,10 +229,10 @@ public class ConsoleHelper {
         }
         if (e instanceof DataAccessException) {
             Throwable cause = e.getCause();
-            System.out.println(RED + "  " + CROSS + " Database problem: " + e.getMessage()
+            System.out.println(RED + MARGIN + CROSS + " Database problem: " + e.getMessage()
                     + (cause == null ? "" : " (" + cause.getMessage() + ")") + RESET);
         } else {
-            System.out.println(RED + "  " + CROSS + " " + (e.getMessage() != null ? e.getMessage() : e.toString()) + RESET);
+            System.out.println(RED + MARGIN + CROSS + " " + (e.getMessage() != null ? e.getMessage() : e.toString()) + RESET);
         }
     }
 
@@ -239,9 +242,9 @@ public class ConsoleHelper {
         String border = repeat(H_DOUBLE, w);
         String thin   = repeat(H_LINE, w);
         System.out.println();
-        System.out.println(BOLD + CYAN + "  " + TL + border + TR + RESET);
-        System.out.println(BOLD + CYAN + "  " + V_LINE + RESET + centerText(TICKET_ICON + " RAILWAY TICKET " + TICKET_ICON, w) + BOLD + CYAN + V_LINE + RESET);
-        System.out.println(BOLD + CYAN + "  " + T_LEFT + border + T_RIGHT + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + TL + border + TR + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + V_LINE + RESET + centerText(TICKET_ICON + " RAILWAY TICKET " + TICKET_ICON, w) + BOLD + CYAN + V_LINE + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + T_LEFT + border + T_RIGHT + RESET);
         printField(w, "PNR",      BOLD + YELLOW + t.getPnr() + RESET);
         printField(w, "Train",    String.valueOf(t.getTrainNumber()));
         printField(w, "Journey",  t.getFromStation() + " → " + t.getToStation() + " on " + DateUtil.format(t.getJourneyDate()));
@@ -253,20 +256,20 @@ public class ConsoleHelper {
             printField(w, "Refund", YELLOW + "Rs. " + t.getRefundAmount() + RESET
                     + DIM + " (" + DateUtil.formatDateTime(t.getCancelledAt()) + ")" + RESET);
         }
-        System.out.println(DIM + "  " + V_LINE + "  " + thin.substring(4) + "  " + V_LINE + RESET);
-        System.out.println(BOLD + "  " + V_LINE + "  Passengers:" + padRight("", w - 14) + V_LINE + RESET);
+        System.out.println(DIM + MARGIN + V_LINE + "  " + thin.substring(4) + "  " + V_LINE + RESET);
+        System.out.println(BOLD + MARGIN + V_LINE + "  Passengers:" + padRight("", w - 14) + V_LINE + RESET);
         int number = 1;
         for (Passenger p : t.getPassengers()) {
             String pInfo = "  " + number++ + ". " + p + " [" + pretty(p.getBerthPreference()) + "]";
-            System.out.println("  " + V_LINE + padRight(pInfo, w) + V_LINE);
+            System.out.println(MARGIN + V_LINE + padRight(pInfo, w) + V_LINE);
         }
-        System.out.println(BOLD + CYAN + "  " + BL + border + BR + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + BL + border + BR + RESET);
     }
 
     private void printField(int boxWidth, String label, String value) {
         String content = "  " + DIM + label + RESET + padRight("", 10 - label.length()) + ": " + value;
         // We can't easily measure ANSI-colored string length, so just print and pad manually
-        System.out.println("  " + V_LINE + content + padForBox(content, boxWidth) + V_LINE);
+        System.out.println(MARGIN + V_LINE + content + padForBox(content, boxWidth) + V_LINE);
     }
 
     // ─────────────────────────────────────── Banner ──────────────────────
@@ -275,17 +278,17 @@ public class ConsoleHelper {
     public void printBanner() {
         String[] art = {
             "",
-            BOLD + CYAN +  "      ╔══════════════════════════════════════════════════════╗" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + WHITE +  "      ____       _ _                                  " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + WHITE +  "     |  _ \\ __ _(_) |_      ____ _ _   _              " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + WHITE +  "     | |_) / _` | | \\ \\ /\\ / / _` | | | |             " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + WHITE +  "     |  _ < (_| | | |\\ V  V / (_| | |_| |             " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + WHITE +  "     |_| \\_\\__,_|_|_| \\_/\\_/ \\__,_|\\__, |             " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + WHITE +  "                                    |___/              " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + BOLD + GREEN +  "       R E S E R V A T I O N   S Y S T E M             " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + DIM +            "                                                       " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ║" + RESET + DIM +            "       " + TRAIN + "  Fast • Reliable • Convenient             " + BOLD + CYAN + "║" + RESET,
-            BOLD + CYAN +  "      ╚══════════════════════════════════════════════════════╝" + RESET,
+            BOLD + CYAN +  MARGIN + "╔══════════════════════════════════════════════════════╗" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + WHITE +  "      ____       _ _                                  " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + WHITE +  "     |  _ \\ __ _(_) |_      ____ _ _   _              " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + WHITE +  "     | |_) / _` | | \\ \\ /\\ / / _` | | | |             " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + WHITE +  "     |  _ < (_| | | |\\ V  V / (_| | |_| |             " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + WHITE +  "     |_| \\_\\__,_|_|_| \\_/\\_/ \\__,_|\\__, |             " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + WHITE +  "                                    |___/              " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + BOLD + GREEN +  "       R E S E R V A T I O N   S Y S T E M             " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + DIM +            "                                                       " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "║" + RESET + DIM +            "       " + TRAIN + "  Fast • Reliable • Convenient             " + BOLD + CYAN + "║" + RESET,
+            BOLD + CYAN +  MARGIN + "╚══════════════════════════════════════════════════════╝" + RESET,
             ""
         };
         for (String line : art) {
@@ -297,8 +300,8 @@ public class ConsoleHelper {
     public void printGoodbye() {
         System.out.println();
         thinLine(50);
-        typewrite("  Thank you for using Railway Reservation System!", 20);
-        typewrite("  Have a safe journey! " + TRAIN, 20);
+        typewrite(MARGIN + "Thank you for using Railway Reservation System!", 20);
+        typewrite(MARGIN + "Have a safe journey! " + TRAIN, 20);
         thinLine(50);
         System.out.println();
     }
@@ -315,13 +318,13 @@ public class ConsoleHelper {
         String thin   = repeat(H_LINE, width);
 
         System.out.println();
-        System.out.println(BOLD + CYAN + "  " + TL + border + TR + RESET);
-        System.out.println(BOLD + CYAN + "  " + V_LINE + RESET + centerText(title, width) + BOLD + CYAN + V_LINE + RESET);
-        System.out.println(CYAN + "  " + T_LEFT + thin + T_RIGHT + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + TL + border + TR + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + V_LINE + RESET + centerText(title, width) + BOLD + CYAN + V_LINE + RESET);
+        System.out.println(CYAN + MARGIN + T_LEFT + thin + T_RIGHT + RESET);
         for (String opt : options) {
-            System.out.println("  " + V_LINE + padRight("  " + opt, width) + V_LINE);
+            System.out.println(MARGIN + V_LINE + padRight("  " + opt, width) + V_LINE);
         }
-        System.out.println(BOLD + CYAN + "  " + BL + border + BR + RESET);
+        System.out.println(BOLD + CYAN + MARGIN + BL + border + BR + RESET);
 
         return readInt("Choose: ", min, max);
     }
