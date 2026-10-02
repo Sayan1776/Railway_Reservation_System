@@ -1,0 +1,4 @@
+db.url =[your DB URL]
+db.user=[DB User]
+db.passwaord=[YOUR DB PASSWORD]
+get these from supabase[Postgre]

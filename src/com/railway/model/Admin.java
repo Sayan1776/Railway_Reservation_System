@@ -1,4 +1,16 @@
 package com.railway.model;
 
-public class Admin {
+import java.time.LocalDateTime;
+
+public class Admin extends Person {
+
+    public Admin(Long id, String fullName, String email, String phone,
+                 String passwordHash, String salt, LocalDateTime createdAt) {
+        super(id, fullName, email, phone, passwordHash, salt, createdAt);
+    }
+
+    @Override
+    public Role getRole() {
+        return Role.ADMIN;
+    }
 }
